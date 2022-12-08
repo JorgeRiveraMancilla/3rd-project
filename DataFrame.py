@@ -48,9 +48,14 @@ class DataFrame:
         if 'date' in self.dataframe.columns:
             self.dataframe['date'] = self.dataframe['date'].str.replace('!%', '/')
             self.dataframe = self.dataframe[self.dataframe.county != 'UNKNOWN']
+            self.dataframe['deaths'] = self.dataframe['deaths'].fillna('NULL')
 
         if 'fips' in self.dataframe.columns:
             self.dataframe['fips'] = self.dataframe['fips'].astype(str)
+
+        if self.dataframe.iloc[319]['county'] == "DISTRICT OF COLUMBIA":
+            self.dataframe.loc[319, 'state_code'] = "DC"
+            self.dataframe[['state_code']] = self.dataframe[['state_code']].fillna('PR')
 
         self.dataframe.rename(
             columns={'state_code': 'code', 'county': 'name', 'male': 'male_population', 'female': 'female_population',
