@@ -1,7 +1,6 @@
 import configparser
 import pandas
 
-
 class DataFrame:
     dict = {
         'fips': False,
@@ -41,9 +40,6 @@ class DataFrame:
 
         if 'county' in self.dataframe.columns:
             self.dataframe['county'] = self.dataframe['county'].str.upper()
-            self.dataframe['county'] = self.dataframe['county'].str.replace('COUNTY','')
-            self.dataframe['county'] = self.dataframe['county'].str.replace('MUNICIPIO','')
-            self.dataframe['county'] = self.dataframe['county'].str.replace('CITY','')
 
         if 'date' in self.dataframe.columns:
             self.dataframe['date'] = self.dataframe['date'].str.replace('!%', '/')
@@ -61,3 +57,13 @@ class DataFrame:
             columns={'state_code': 'code', 'county': 'name', 'male': 'male_population', 'female': 'female_population',
                      'median_age': 'average_age', 'lat': 'latitude', 'long': 'longitude', 'cases_m': 'male_cases',
                      'cases_f': 'female_cases'}, inplace=True)
+
+    def verify_population(self):
+        if not self.file_exists:
+            raise FileNotFoundError
+        self.dataframe['suma población'] = self.dataframe.iloc[:, [4, 5]].sum(axis=1)
+        #print(self.dataframe)
+        for i in self.dataframe.index:
+            if self.dataframe['population'][i] != self.dataframe['suma población'][i]:
+                print("The county with different population is : ",self.dataframe['name'][i])
+                return False
