@@ -27,6 +27,8 @@ class DataFrame:
             self.__populate_dictionary(key, value)
             self.__word_case_typer(key)
         self.__normalize()
+        self.verify_population()
+        self.rename_columns()
 
     def __populate_dictionary(self, file_name, path_file):
         # Finds type of dataframe and delimit each one
@@ -41,40 +43,61 @@ class DataFrame:
 
     def __word_case_typer(self, file_name):
         self.dataframes[file_name] = \
-            self.dataframes[file_name].applymap(lambda value: value.lower() if type(value) == str else value)
+            self.dataframes[file_name].applymap(lambda value: value.upper() if type(value) == str else value)
         self.dataframes[file_name].rename(
-            columns=str.upper, inplace=True)
+            columns=str.lower, inplace=True)
 
     def __normalize(self):
         self.__normalize_daily_cases_dataframe()
+        self.__normalize_states_us_dataframe()
+        self.__normalize_counties_us_dataframe()
         pass
 
+    def __normalize_counties_us_dataframe(self):
+        if self.dataframes['counties_us'].loc[319]['county'] == "DISTRICT OF COLUMBIA":
+            self.dataframes['counties_us'].loc[319, 'state_code'] = "DC"
+            self.dataframes['counties_us']['state_code'] = self.dataframes['counties_us']['state_code'].fillna('PR')
+
+    def __normalize_states_us_dataframe(self):
+        if self.dataframes['states_us'].loc[319]['county'] == "DISTRICT OF COLUMBIA":
+            self.dataframes['states_us'].loc[319, 'state_code'] = "DC"
+            self.dataframes['states_us']['state_code'] = self.dataframes['states_us']['state_code'].fillna('PR')
+
     def __normalize_daily_cases_dataframe(self):
-        self.dataframes['daily_cases_us']['DATE'] = self.dataframes['daily_cases_us']['DATE'].str.replace('!%', '/')
+        self.dataframes['daily_cases_us']['date'] = self.dataframes['daily_cases_us']['date'].str.replace('!%', '/')
+        self.dataframes['daily_cases_us'] = self.dataframes['daily_cases_us'][
+            self.dataframes['daily_cases_us'].county != 'UNKNOWN']
+        self.dataframes['daily_cases_us']['deaths'] = self.dataframes['daily_cases_us']['deaths'].fillna('NULL')
+
         # Actually is not a useful code, it's only to verifier some inconsistent csv data
         for column in self.dataframes['daily_cases_us'].columns:
             if 'unknown' in set(self.dataframes['daily_cases_us'][column]):
                 print("column: %s" % column)
 
-# if 'date' in self.dataframe.columns:
-#     self.dataframe['date'] = self.dataframe['date'].str.replace('!%', '/')
-#     self.dataframe = self.dataframe[self.dataframe.county != 'UNKNOWN']
-#     self.dataframe['deaths'] = self.dataframe['deaths'].fillna('NULL')
-
-# if self.dataframe.iloc[319]['county'] == "DISTRICT OF COLUMBIA":
-#     self.dataframe.loc[319, 'state_code'] = "DC"
-#     self.dataframe[['state_code']] = self.dataframe[['state_code']].fillna('PR')
-
     def verify_population(self):
-        if not self.file_exists:
-            raise FileNotFoundError
-        self.dataframe['suma población'] = self.dataframe.iloc[:, [4, 5]].sum(axis=1)
-        # print(self.dataframe)
-        for i in self.dataframe.index:
-            if self.dataframe['population'][i] != self.dataframe['suma población'][i]:
-                print("The county with different population is : ", self.dataframe['name'][i])
-                return False
+        merge_dataframe = pandas.merge(self.dataframes['counties_us'], self.dataframes['states_us'], how="outer")
+        merge_dataframe['suma población'] = merge_dataframe.iloc[:, [4, 5]].sum(axis=1)
+        # print(merge_dataframe)
+        # merge_dataframe.to_csv("merge.csv", index=False, encoding='utf-8-sig')
+
+        # get the sum of the columns "male" and "female" and check if is equal to "population" of the county
+        for i in merge_dataframe.index:
+            if merge_dataframe['population'][i] != merge_dataframe['suma población'][i]:
+                print("The county with different population is : ", merge_dataframe['county'][i])
+        print("All data related with population and sum of people by genre is okay")
+
+    def rename_columns(self):
+        for dataframe in self.dataframes.values():
+            dataframe.rename(
+                columns={'state_code': 'code', 'county': 'name', 'male': 'male_population',
+                         'female': 'female_population',
+                         'median_age': 'average_age', 'lat': 'latitude', 'long': 'longitude', 'cases_m': 'male_cases',
+                         'cases_f': 'female_cases'}, inplace=True)
 
     def to_string(self):
+        # i = 1
         for dataframe in self.dataframes.values():
+            # name_dataframe = "resources/" + "dataframe" + str(i) + ".csv"
+            # dataframe.to_csv(name_dataframe, index=False, encoding='utf-8-sig')
+            # i = i + 1
             print(dataframe)
