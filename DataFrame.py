@@ -70,11 +70,6 @@ class DataFrame:
             self.dataframes['daily_cases_us'].county != 'UNKNOWN']
         self.dataframes['daily_cases_us']['deaths'] = self.dataframes['daily_cases_us']['deaths'].fillna('NULL')
 
-        # Actually is not a useful code, it's only to verifier some inconsistent csv data
-        for column in self.dataframes['daily_cases_us'].columns:
-            if 'unknown' in set(self.dataframes['daily_cases_us'][column]):
-                print("column: %s" % column)
-
     def __verify_population(self):
         merge_dataframe = pandas.merge(self.dataframes['counties_us'], self.dataframes['states_us'], how="outer")
         merge_dataframe['suma población'] = merge_dataframe.iloc[:, [4, 5]].sum(axis=1)
@@ -89,7 +84,7 @@ class DataFrame:
     def __rename_columns(self):
         for dataframe in self.dataframes.values():
             dataframe.rename(
-                columns={'state_code': 'code', 'county': 'name', 'male': 'male_population',
+                columns={'state_code': 'code', 'male': 'male_population',
                          'female': 'female_population',
                          'median_age': 'average_age', 'lat': 'latitude', 'long': 'longitude', 'cases_m': 'male_cases',
                          'cases_f': 'female_cases'}, inplace=True)
@@ -102,7 +97,14 @@ class DataFrame:
 
     def __manage_irregular_fips(self):
         data_frame = self.dataframes['daily_cases_us']
-        print(data_frame.columns)
-        data_frame.update(data_frame['fips'].mask(data_frame['name'] == "NEW YORK CITY", lambda x: 1))
-        data_frame.update(data_frame['fips'].mask(data_frame['name'] == "KANSAS CITY", lambda x: 0))
+        data_frame.update(data_frame['fips'].mask(data_frame['county'] == "NEW YORK CITY", lambda x: 1))
+        data_frame.update(data_frame['fips'].mask(data_frame['county'] == "KANSAS CITY", lambda x: 0))
 
+    def get_states_dataframe(self):
+        return self.dataframes['states_us']
+
+    def get_counties_dataframe(self):
+        return self.dataframes['counties_us']
+
+    def get_daily_cases_dataframe(self):
+        return self.dataframes['daily_cases_us']

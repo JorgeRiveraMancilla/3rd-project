@@ -1,11 +1,24 @@
+import configparser
+
 from DataFrame import DataFrame
+from MDB import MDB
+from Connect import Connect
 
-# from Connect import Connect
-# from RDB import RDB
-# from MDB import MDB
-# from Cube import Cube
 
-if __name__ == '__main__':
+def init_dataframe():
     dataframe = DataFrame(states_us='resources/states_us.csv', daily_cases_us='resources/daily_cases_us.csv',
                           counties_us='resources/counties_us.csv')
-    print(dataframe.__repr__())
+    init_database(dataframe)
+
+
+def init_database(dataframe):
+    connect = Connect('mdb')
+    connect.create_tables()
+    mdb = MDB(dataframe.get_states_dataframe(),
+              dataframe.get_daily_cases_dataframe(),
+              dataframe.get_counties_dataframe(), connect)
+    mdb.insert()
+
+
+if __name__ == '__main__':
+    init_dataframe()
