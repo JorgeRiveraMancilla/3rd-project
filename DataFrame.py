@@ -27,8 +27,8 @@ class DataFrame:
             self.__populate_dictionary(key, value)
             self.__word_case_typer(key)
         self.__normalize()
-        self.verify_population()
-        self.rename_columns()
+        self.__verify_population()
+        self.__rename_columns()
         self.__manage_irregular_fips()
 
     def __populate_dictionary(self, file_name, path_file):
@@ -75,7 +75,7 @@ class DataFrame:
             if 'unknown' in set(self.dataframes['daily_cases_us'][column]):
                 print("column: %s" % column)
 
-    def verify_population(self):
+    def __verify_population(self):
         merge_dataframe = pandas.merge(self.dataframes['counties_us'], self.dataframes['states_us'], how="outer")
         merge_dataframe['suma población'] = merge_dataframe.iloc[:, [4, 5]].sum(axis=1)
         # merge_dataframe.to_csv("merge.csv", index=False, encoding='utf-8-sig')
@@ -86,7 +86,7 @@ class DataFrame:
                 print("The county with different population is : ", merge_dataframe['county'][i])
         print("All data related with population and sum of people by genre is okay")
 
-    def rename_columns(self):
+    def __rename_columns(self):
         for dataframe in self.dataframes.values():
             dataframe.rename(
                 columns={'state_code': 'code', 'county': 'name', 'male': 'male_population',
@@ -101,8 +101,8 @@ class DataFrame:
         return string_builder
 
     def __manage_irregular_fips(self):
-        for index, row in self.dataframes['daily_cases_us'].iterrows():
-            if row[1] == "NEW YORK CITY":
-                row[3] = 0
-            if row[1] == "KANSAS CITY":
-                row[3] = 1
+        data_frame = self.dataframes['daily_cases_us']
+        print(data_frame.columns)
+        data_frame.update(data_frame['fips'].mask(data_frame['name'] == "NEW YORK CITY", lambda x: 1))
+        data_frame.update(data_frame['fips'].mask(data_frame['name'] == "KANSAS CITY", lambda x: 0))
+

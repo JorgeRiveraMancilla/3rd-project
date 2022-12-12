@@ -38,7 +38,9 @@ class Connect:
     def create_tables(self):
         if not self.is_connected:
             raise psycopg2.OperationalError
-        script = open('resources/' + self.database + '_schema.sql', mode='r').read()
+        script = open('resources/mdb_schema.sql', mode='r').read()
+        self.execute(script)
+        script = open('resources/rdb_schema.sql', mode='r').read()
         self.execute(script)
 
     def close(self):
