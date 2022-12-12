@@ -29,6 +29,7 @@ class DataFrame:
         self.__normalize()
         self.verify_population()
         self.rename_columns()
+        self.__manage_irregular_fips()
 
     def __populate_dictionary(self, file_name, path_file):
         # Finds type of dataframe and delimit each one
@@ -77,7 +78,6 @@ class DataFrame:
     def verify_population(self):
         merge_dataframe = pandas.merge(self.dataframes['counties_us'], self.dataframes['states_us'], how="outer")
         merge_dataframe['suma población'] = merge_dataframe.iloc[:, [4, 5]].sum(axis=1)
-        # print(merge_dataframe)
         # merge_dataframe.to_csv("merge.csv", index=False, encoding='utf-8-sig')
 
         # get the sum of the columns "male" and "female" and check if is equal to "population" of the county
@@ -99,3 +99,10 @@ class DataFrame:
         for dataframe in self.dataframes.values():
             string_builder += dataframe.__repr__() + "\n"
         return string_builder
+
+    def __manage_irregular_fips(self):
+        for index, row in self.dataframes['daily_cases_us'].iterrows():
+            if row[1] == "NEW YORK CITY":
+                row[3] = 0
+            if row[1] == "KANSAS CITY":
+                row[3] = 1
