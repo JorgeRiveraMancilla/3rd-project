@@ -94,10 +94,8 @@ class DataFrame:
                          'median_age': 'average_age', 'lat': 'latitude', 'long': 'longitude', 'cases_m': 'male_cases',
                          'cases_f': 'female_cases'}, inplace=True)
 
-    def to_string(self):
-        # i = 1
+    def __repr__(self):
+        string_builder = ""
         for dataframe in self.dataframes.values():
-            # name_dataframe = "resources/" + "dataframe" + str(i) + ".csv"
-            # dataframe.to_csv(name_dataframe, index=False, encoding='utf-8-sig')
-            # i = i + 1
-            print(dataframe)
+            string_builder += dataframe.__repr__() + "\n"
+        return string_builder
