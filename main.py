@@ -8,6 +8,7 @@ from Connect import Connect
 def init_dataframe():
     dataframe = DataFrame(states_us='resources/states_us.csv', daily_cases_us='resources/daily_cases_us.csv',
                           counties_us='resources/counties_us.csv')
+    dataframe.transform()
     init_database(dataframe)
 
 

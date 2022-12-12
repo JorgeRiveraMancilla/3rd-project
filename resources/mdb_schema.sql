@@ -24,7 +24,7 @@ CREATE TABLE facts
     male_cases   int4   NOT NULL,
     female_cases int4   NOT NULL,
     total_cases  int4   NOT NULL,
-    deaths       int4   NOT NULL,
+    deaths       int4,
     county_fips  int4   NOT NULL,
     time_id      int4   NOT NULL,
     PRIMARY KEY (id)
