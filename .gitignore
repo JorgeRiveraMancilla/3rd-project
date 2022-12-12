@@ -4,4 +4,4 @@
 *.ipr
 
 __pycache__
-/resources/config.ini
+/resources/*.ini
