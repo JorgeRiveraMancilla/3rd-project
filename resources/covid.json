@@ -35,7 +35,7 @@
 	],
 	"cubes": [
 		{
-			"name": "facts_table",
+			"name": "facts",
 			"dimensions": ["time", "location"],
 			"measures": ["male_cases", "female_cases", "total_cases", "deaths"],
 			"aggregates": [
