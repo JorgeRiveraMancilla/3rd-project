@@ -1,7 +1,6 @@
 import pandas
 from MDB import MDB
 from RDB import RDB
-import openpyxl
 
 
 class ETL:
@@ -51,7 +50,7 @@ class ETL:
         self.__check_fips()
 
         self.__check_population()
-        # self.__check_cases()
+        self.__check_cases()
 
     @staticmethod
     def __lower_case(df):
@@ -133,17 +132,14 @@ class ETL:
         return True
 
     def __check_cases(self):
-        pass
-        # errors = []
-        # df = pandas.merge(self.df_counties, self.df_daily_cases, how='outer', on=['county', 'state', 'fips'])
-        # for index, row in df.iterrows():
-        #     total_cases = row[10]
-        #     male_cases = row[4]
-        #     female_cases = row[5]
-        #     if total_cases != male_cases + female_cases:
-        #         fips = row[0]
-        #         errors.append(fips)
-        # print(errors)
+        errors = []
+        dc_np = self.df_daily_cases.to_numpy()
+        for row in dc_np:
+            total = int(row[4]) # total cases = 4
+            derived_total = int(row[6]) + int(row[7])  # male_cases = 6 && female_ cases = 7
+            if total != derived_total:
+                errors.append(str(row[0]) + " " + str(row[3]))
+        return errors
 
     # endregion
 
