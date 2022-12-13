@@ -2,22 +2,6 @@ import pandas
 
 
 class DataFrame:
-    __default_values = {
-        'fips': False,
-        'date': False,
-        'state': 'CONSTRUCTOR',
-        'state_code': 'CONSTRUCTOR',
-        'male': False,
-        'female': False,
-        'median_age': 'NULL',
-        'county': False,
-        'cases': 'NULL',
-        'deaths': False,
-        'population': False,
-        'cases_m': False,
-        'cases_f': False,
-    }
-
     def __init__(self, **kwargs: str):
         # First create the minimum class attributes to work
         self.__dataframes = dict()
@@ -42,9 +26,6 @@ class DataFrame:
         self.__generic_normalize_dataframe()
         # llama a la normalización especifica de cada dataframe
         self.__specific_normalize()
-        # valida los fips irregulares de daily cases
-        # verifica que las poblaciones coincidan entre states_us y counties_us
-        self.__verify_population()
 
     # region GENERIC NORMALIZATION
     def __generic_normalize_dataframe(self):
@@ -53,18 +34,22 @@ class DataFrame:
 
     def __word_case_typer(self):
         for dataframe in self.__dataframes:
-            self.__dataframes[dataframe] = \
-                self.__dataframes[dataframe]\
-                    .applymap(lambda value: value.upper().replace("'", "") if type(value) == str else value)
+            self.__dataframes[dataframe] = self.__dataframes[dataframe].applymap(
+                lambda value: value.upper().replace("'", "") if type(value) == str else value)
             self.__dataframes[dataframe].rename(columns=str.lower, inplace=True)
 
     def __rename_columns(self):
         for dataframe in self.__dataframes.values():
             dataframe.rename(
-                columns={'state_code': 'code', 'male': 'male_population',
+                columns={'state_code': 'code',
+                         'male': 'male_population',
                          'female': 'female_population',
-                         'median_age': 'average_age', 'lat': 'latitude', 'long': 'longitude', 'cases_m': 'male_cases',
-                         'cases_f': 'female_cases', 'cases': 'total_cases'}, inplace=True)
+                         'median_age': 'average_age',
+                         'lat': 'latitude',
+                         'long': 'longitude',
+                         'cases_m': 'male_cases',
+                         'cases_f': 'female_cases',
+                         'cases': 'total_cases'}, inplace=True)
 
     # endregion
 
@@ -108,15 +93,23 @@ class DataFrame:
     # endregion
 
     # region VERIFIY_POPULATION
-    def __verify_population(self):
-        # REVISAR!
-        merge_dataframe = pandas.merge(self.__dataframes['counties_us'], self.__dataframes['states_us'], how="outer")
-        merge_dataframe['suma población'] = merge_dataframe.iloc[:, [4, 5]].sum(axis=1)
-        # get the sum of the columns "male" and "female" and check if is equal to "population" of the county
-        for i in merge_dataframe.index:
-            if merge_dataframe['population'][i] != merge_dataframe['suma población'][i]:
-                print("The county with different population is : ", merge_dataframe['county'][i])
-        print("All data related with population and sum of people by genre is okay")
+    def verify_population(self):
+        dataframe_states = self.__dataframes['states_us']
+        dataframe_counties = self.__dataframes['counties_us']
+        counties = []
+        dataframe_merge = pandas.merge(dataframe_states, dataframe_counties,
+                                       how='outer',
+                                       on=['county', 'state', 'code'])
+        for index, row in dataframe_merge.iterrows():
+            county = row[0]
+            total_population = row[3]
+            male_population = row[5]
+            female_population = row[6]
+            if total_population != male_population + female_population:
+                counties.append(county)
+        for county in counties:
+            dataframe_states = dataframe_states[dataframe_states['county'] != county]
+            dataframe_counties = dataframe_counties[dataframe_counties['county'] != county]
 
     # endregion
 
@@ -130,12 +123,4 @@ class DataFrame:
     def get_daily_cases_dataframe(self):
         return self.__dataframes['daily_cases_us']
 
-    # endregion
-
-    # region OBJECT_OVERRIDES
-    def __repr__(self):
-        string_builder = ""
-        for dataframe in self.__dataframes.values():
-            string_builder += dataframe.__repr__() + "\n"
-        return string_builder
     # endregion

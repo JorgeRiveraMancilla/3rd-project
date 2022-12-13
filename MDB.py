@@ -86,6 +86,7 @@ class MDB:
             self.connect.execute(statement)
 
     def __insert_facts(self):
+        decidoserfeliz = []
         for row in self.daily_cases[['male_cases', 'female_cases', 'total_cases', 'deaths', 'fips', 'date']].iterrows():
             male_cases = str(row[1][0])
             female_cases = str(row[1][1])
@@ -96,8 +97,14 @@ class MDB:
             statement = Util.select_statement(['time_dimension'], ['register = ' + date])
             table = self.connect.select(statement)
             time_id = str(table[0][0])
-            statement = \
-                Util.insert_statement('facts',
-                                      ['male_cases', 'female_cases', 'total_cases', 'deaths', 'county_fips', 'time_id'],
-                                      [male_cases, female_cases, total_cases, deaths, fips, time_id])
-            self.connect.execute(statement)
+            statement = Util.select_statement(['county_dimension'], ['fips = ' + fips])
+            table = self.connect.select(statement)
+            if table:
+                statement = Util.insert_statement(
+                    'facts',
+                    ['male_cases', 'female_cases', 'total_cases', 'deaths', 'county_fips', 'time_id'],
+                    [male_cases, female_cases, total_cases, deaths, fips, time_id])
+                self.connect.execute(statement)
+            else:
+                decidoserfeliz.append(fips)
+        print()
