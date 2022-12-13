@@ -9,19 +9,9 @@ CREATE TABLE states
     PRIMARY KEY (code)
 );
 
-CREATE TABLE daily_cases
-(
-    county_fips  int4 NOT NULL,
-    register     date NOT NULL,
-    male_cases   int4 NOT NULL,
-    female_cases int4 NOT NULL,
-    deaths       int4 NOT NULL,
-    PRIMARY KEY (county_fips, register)
-);
-
 CREATE TABLE counties
 (
-    fips              SERIAL       NOT NULL,
+    fips              int4         NOT NULL,
     name              varchar(255) NOT NULL,
     male_population   int4         NOT NULL,
     female_population int4         NOT NULL,
@@ -30,6 +20,16 @@ CREATE TABLE counties
     longitude         float8       NOT NULL,
     state_code        varchar(255) NOT NULL,
     PRIMARY KEY (fips)
+);
+
+CREATE TABLE daily_cases
+(
+    county_fips  int4 NOT NULL,
+    register     date NOT NULL,
+    male_cases   int4 NOT NULL,
+    female_cases int4 NOT NULL,
+    deaths       int4 NOT NULL,
+    PRIMARY KEY (county_fips, register)
 );
 
 ALTER TABLE counties

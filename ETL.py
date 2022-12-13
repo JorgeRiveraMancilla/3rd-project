@@ -1,4 +1,6 @@
 import pandas
+from MDB import MDB
+from RDB import RDB
 
 
 class ETL:
@@ -17,6 +19,9 @@ class ETL:
         self.df_states = self.__lower_case(self.df_states)
         self.df_counties = self.__lower_case(self.df_counties)
         self.df_daily_cases = self.__lower_case(self.df_daily_cases)
+
+        self.df_daily_cases.dropna(subset=['fips'], inplace=True)
+        self.df_daily_cases.fillna(value={'deaths': 0}, inplace=True)
 
         self.df_states = self.__remove_character(self.df_states, '\'', '')
         self.df_states = self.__remove_character(self.df_states, ' county', '')
@@ -43,11 +48,12 @@ class ETL:
         self.__check_state()
         self.__check_counties()
         self.__check_fips()
-        self.__check_population()
-        self.__check_cases()
+
+        # self.__check_population()
+        # self.__check_cases()
 
     def __lower_case(self, df):
-        df = df.apply(lambda x: x.astype(str).str.lower())
+        df = df.applymap(lambda x: x.lower() if type(x) == str else x)
         return df.rename(columns=str.lower)
 
     def __remove_character(self, df, before, after):
@@ -87,9 +93,11 @@ class ETL:
         errors = []
         fips_in_counties_file = []
         for fips in self.df_counties['fips'].unique():
+            fips = float(fips)
             if fips not in fips_in_counties_file:
                 fips_in_counties_file.append(fips)
         for fips in self.df_daily_cases['fips'].unique():
+            fips = float(fips)
             if fips not in fips_in_counties_file:
                 errors.append(fips)
         for fips_error in errors:
@@ -123,7 +131,11 @@ class ETL:
 
     # region LOAD
 
-    def load(self, connect):
-        pass
+    def load(self):
+        mdb = MDB(self.df_states, self.df_counties, self.df_daily_cases)
+        mdb.insert()
+
+        rdb = RDB(self.df_states, self.df_counties, self.df_daily_cases)
+        rdb.insert()
 
     # endregion
