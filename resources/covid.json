@@ -12,6 +12,7 @@
 			"hierarchies": [
 				{"name": "date", "levels":["year", "month", "day"] },
 				{"name": "ym", "levels":["year", "month"] },
+				{"name": "month", "levels":["month"] },
 				{"name": "year", "levels":["year"] }
 			],
 			"default_hierarchy_name": "date"
@@ -36,24 +37,28 @@
 		{
 			"name": "facts_table",
 			"dimensions": ["time", "location"],
-			"measures": [
-				{"name": "male_cases"},
-				{"name": "female_cases"},
-				{"name": "total_cases"} ,
-				{"name": "deaths"}
-			],
+			"measures": ["male_cases", "female_cases", "total_cases", "deaths"],
 			"aggregates": [
 				{
 					"name": "record_count", "function": "count"
 				},
 				{
-					"name": "price_avg", "measure": "price", "function": "avg"
+					"name": "male_min", "measure": "male_cases", "function": "min"
 				},
 				{
-					"name": "price_min", "measure": "price", "function": "min"
+					"name": "male_max", "measure": "male_cases", "function": "max"
 				},
 				{
-					"name": "price_max", "measure": "price", "function": "max"
+					"name": "male_avg", "measure": "male_cases", "function": "avg"
+				},
+				{
+					"name": "female_min", "measure": "female_cases", "function": "min"
+				},
+				{
+					"name": "female_max", "measure": "female_cases", "function": "max"
+				},
+				{
+					"name": "female_avg", "measure": "female_cases", "function": "avg"
 				}
 			],
 			"joins": [
