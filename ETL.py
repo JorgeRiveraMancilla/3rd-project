@@ -1,6 +1,7 @@
 import pandas
 from MDB import MDB
 from RDB import RDB
+import openpyxl
 
 
 class ETL:
@@ -49,20 +50,24 @@ class ETL:
         self.__check_counties()
         self.__check_fips()
 
-        # self.__check_population()
+        self.__check_population()
         # self.__check_cases()
 
-    def __lower_case(self, df):
+    @staticmethod
+    def __lower_case(df):
         df = df.applymap(lambda x: x.lower() if type(x) == str else x)
         return df.rename(columns=str.lower)
 
-    def __remove_character(self, df, before, after):
+    @staticmethod
+    def __remove_character(df, before, after):
         return df.apply(lambda x: x.astype(str).str.replace(before, after))
 
-    def __rename_columns(self, df, new_columns):
+    @staticmethod
+    def __rename_columns(df, new_columns):
         df.rename(columns=new_columns, inplace=True)
 
-    def __fill_state_code(self, df, state_name, state_code):
+    @staticmethod
+    def __fill_state_code(df, state_name, state_code):
         df.update(df['state_code'].mask(df['state'] == state_name, lambda x: state_code))
 
     def __check_state(self):
@@ -105,27 +110,40 @@ class ETL:
 
     def __check_population(self):
         errors = []
-        df = pandas.merge(self.df_states, self.df_counties, how='outer', on=['county', 'state', 'state_code'])
-        for index, row in df.iterrows():
-            total_population = row[3]
-            male_population = row[5]
-            female_population = row[6]
-            if total_population != male_population + female_population:
-                fips = row[4]
-                errors.append(fips)
-        print(errors)
+        np_s = self.df_states.to_numpy()
+        np_c = self.df_counties.to_numpy()
+        for s_row in np_s:
+            s_population = int(s_row[3])  # population of state_us
+            for c_row in np_c:
+                # state_us   county = 0, state = 1, state_code = 2
+                # counties_us  county = 1, state = 2, state_code = 3
+                if not self.__compare_counties_state_tuple(c_row, s_row):
+                    continue
+                c_population = int(c_row[4]) + int(c_row[5])
+                if s_population != c_population:
+                    errors.append(int(c_row[0]))
+                break
+        return errors
+
+    @staticmethod
+    def __compare_counties_state_tuple(c_row, s_row):
+        for i in range(3):
+            if c_row[i + 1] != s_row[i]:
+                return False
+        return True
 
     def __check_cases(self):
-        errors = []
-        df = pandas.merge(self.df_counties, self.df_daily_cases, how='outer', on=['county', 'state', 'fips'])
-        for index, row in df.iterrows():
-            total_cases = row[10]
-            male_cases = row[4]
-            female_cases = row[5]
-            if total_cases != male_cases + female_cases:
-                fips = row[0]
-                errors.append(fips)
-        print(errors)
+        pass
+        # errors = []
+        # df = pandas.merge(self.df_counties, self.df_daily_cases, how='outer', on=['county', 'state', 'fips'])
+        # for index, row in df.iterrows():
+        #     total_cases = row[10]
+        #     male_cases = row[4]
+        #     female_cases = row[5]
+        #     if total_cases != male_cases + female_cases:
+        #         fips = row[0]
+        #         errors.append(fips)
+        # print(errors)
 
     # endregion
 
