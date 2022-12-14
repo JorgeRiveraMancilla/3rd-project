@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-from cubes import PointCut, Cell
+import pandas
+from pandas.plotting import scatter_matrix
 
 
 class CaseOne:
-    def __init__(self):
-        pass
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
 
     def view(self):
         self.__process()
 
     def __process(self):
-        pass
+        pandas.plotting.scatter_matrix(self.dataframe.convert_dtypes(convert_string=False), alpha=0.2)

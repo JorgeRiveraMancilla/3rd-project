@@ -9,18 +9,17 @@ from CaseFour import CaseFour
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('resources/config.ini')
+    paths = config['paths']
+    etl = ETL([paths['path_file_states'], paths['path_file_counties'], paths['path_file_daily_cases']],
+              [',', '/', ','])
 
-    if config['program'].getboolean('etl'):
-        paths = config['paths']
-        etl = ETL([paths['path_file_states'], paths['path_file_counties'], paths['path_file_daily_cases']],
-                  [',', '/', ','])
+    if config['program'].getboolean('et'):
         etl.transform()
-        etl.load()
-
-    cube = Cube()
+        if config['program'].getboolean('load'):
+            etl.load()
 
     if config['program'].getboolean('case_one'):
-        case_one = CaseOne()
+        case_one = CaseOne(etl.df_daily_cases)
         case_one.view()
 
     if config['program'].getboolean('case_two'):

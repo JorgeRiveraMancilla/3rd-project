@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class CaseTwo:
-    def _init_(self, county):
+    def __init__(self, county):
         self.county = county
         self.all_time_id = []
         self.all_register = []
