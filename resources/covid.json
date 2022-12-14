@@ -1,0 +1,83 @@
+{
+	"name": "covid",
+	"dimensions": [
+		{
+			"name": "time",
+			"attributes": ["id", "register", "day", "month", "year"],
+			"levels": [
+				{ "name": "year", "attributes": ["year"] },
+				{ "name": "month", "attributes": ["month"] },
+				{ "name": "day", "attributes": ["day"] }
+			],
+			"hierarchies": [
+				{"name": "date", "levels":["year", "month", "day"] },
+				{"name": "ym", "levels":["year", "month"] },
+				{"name": "month", "levels":["month"] },
+				{"name": "year", "levels":["year"] }
+			],
+			"default_hierarchy_name": "date"
+		},
+		{
+			"name": "location",
+			"levels": [
+				{ "name": "county", "attributes": ["fips","name","male_population","female_population","total_population","latitude","longitude"],
+					"key": "fips"
+				},
+				{ "name": "state", "attributes": ["code","name"], "key": "code" }
+			],
+			"hierarchies": [
+				{ "name": "complete", "levels":["county", "state"] },
+				{ "name": "county", "levels":["county"] },
+				{ "name": "state", "levels":["state"] }
+			],
+			"default_hierarchy_name": "complete"
+		}
+	],
+	"cubes": [
+		{
+			"name": "facts",
+			"dimensions": ["time", "location"],
+			"measures": ["male_cases", "female_cases", "total_cases", "deaths"],
+			"aggregates": [
+				{
+					"name": "record_count", "function": "count"
+				},
+				{
+					"name": "male_min", "measure": "male_cases", "function": "min"
+				},
+				{
+					"name": "male_max", "measure": "male_cases", "function": "max"
+				},
+				{
+					"name": "male_avg", "measure": "male_cases", "function": "avg"
+				},
+				{
+					"name": "female_min", "measure": "female_cases", "function": "min"
+				},
+				{
+					"name": "female_max", "measure": "female_cases", "function": "max"
+				},
+				{
+					"name": "female_avg", "measure": "female_cases", "function": "avg"
+				}
+			],
+			"joins": [
+				{ "master": "county_fips", "detail": "county_dimension.fips" },
+				{ "master": "county_dimension.state_code", "detail": "state_dimension.code" },
+				{ "master": "time_id", "detail": "time_dimension.id" }
+			],
+			"mappings": {
+				"location.county.fips": "county_dimension.fips",
+				"location.county.name": "county_dimension.name",
+				"location.county.total_population": "county_dimension.total_population",
+				"location.county.male_population": "county_dimension.male_population",
+				"location.county.female_population": "county_dimension.female_population",
+				"location.county.latitude": "county_dimension.latitude",
+				"location.county.longitude": "county_dimension.longitude",
+				"location.state.code": "state_dimension.code",
+				"location.state.name": "state_dimension.name"
+			},
+			"key": "id"
+		}
+	]
+}

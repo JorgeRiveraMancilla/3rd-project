@@ -3,6 +3,8 @@ def select_statement(tables, conditions):
     n = len(tables)
     for i in range(n - 1):
         statement += tables[i] + ', '
+    if conditions is None:
+        return statement + tables[n - 1]
     statement += tables[n - 1] + ' WHERE '
     n = len(conditions)
     for i in range(n - 1):
